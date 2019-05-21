@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+# > Create Folders and put problem statement, stdin and starting piece thingy 
+
+import sys
+import os
+
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
+# from PIL import Image
+
+# Check
+if (len(sys.argv) < 2):
+	print('Usage: <<>>.py [url] \nSample url: https://www.hackerrank.com/challenges/attribute-parser/problem')
+	exit()
+
+# Run Firefox
+firefoxOption = Options()
+firefoxOption.add_argument('-headless');
+firefoxOption.add_argument('--window-size=1920,1080')
+driver = webdriver.Firefox(firefox_options=firefoxOption)
+P_PATH = './'
+
+# create nested folders
+def createFolders():
+	global P_PATH
+	pathList = driver.find_elements_by_class_name('breadcrumb-item-text')
+	for p in pathList:
+		P_PATH += p.text + '/'
+	os.makedirs(P_PATH, exist_ok=True)
+	populateFolder()
+
+# Put in the myeet
+def populateFolder():
+	ProblemStatement()
+	ProblemCode()
+
+# Creates an Image of the problem statement
+# TODO: Add options whether to use text or image
+def ProblemStatement():
+	p_Statement = driver.find_element_by_class_name('hr_tour-problem-statement').screenshot_as_png
+	img = open("{0}/statement.png".format(P_PATH), "wb")
+	img.write(p_Statement)
+
+# Makes the code file
+def ProblemCode():
+	p_Lang = {"C++":"cpp", "Python":"py", "C":"c"}		#TODO: Add other langs
+	pathList = driver.find_elements_by_class_name('breadcrumb-item-text')
+	p_Name = ''.join(ch for ch in pathList[-1].text if ch.isalnum())
+	p_default = driver.find_element_by_xpath("//div[@class='view-lines']").text		#TODO: prettify p_default
+	
+	pMain = open("{0}{1}.{2}".format(P_PATH, p_Name, p_Lang[pathList[1].text]), 'w')
+	pMain.write(p_default)
+	pMain.close()
+
+
+def main():
+	url = sys.argv[1]
+	driver.get(url)
+	# Close the signup popup 
+	try:
+		close_btn = driver.find_element_by_class_name('close-icon')
+		close_btn.click()
+	except:
+		pass
+
+	createFolders()
+
+	driver.close()
+
+if __name__ == "__main__":
+	main()
