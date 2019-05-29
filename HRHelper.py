@@ -33,13 +33,17 @@ def createFolders():
 def populateFolder():
 	ProblemStatement()
 	ProblemCode()
+	InputOutput()
+	#Runner()
 
+# [populateFolder]
 # Creates an Image of the problem statement
 # TODO: Add options whether to use text or image
 def ProblemStatement():
 	p_Statement = driver.find_element_by_class_name('hr_tour-problem-statement').screenshot_as_png
 	img = open("{0}/statement.png".format(P_PATH), "wb")
 	img.write(p_Statement)
+	img.close()
 
 # Makes the code file
 def ProblemCode():
@@ -52,6 +56,17 @@ def ProblemCode():
 	pMain.write(p_default)
 	pMain.close()
 
+def InputOutput():
+	p_Input = driver.find_element_by_class_name('challenge_sample_input_body').text
+	inp = open('{0}/inp.txt'.format(P_PATH), 'w')
+	inp.write(p_Input)
+	inp.close()
+
+	p_Output = driver.find_element_by_class_name('challenge_sample_output_body').text
+	out = open('{0}/out.txt'.format(P_PATH), 'w')
+	out.write(p_Output)
+	out.close()
+	
 
 def main():
 	url = sys.argv[1]
