@@ -19,6 +19,7 @@ firefoxOption.add_argument('-headless');
 firefoxOption.add_argument('--window-size=1920,1080')
 driver = webdriver.Firefox(firefox_options=firefoxOption)
 P_PATH = './'
+URL = ''
 
 # create nested folders
 def createFolders():
@@ -47,12 +48,18 @@ def ProblemStatement():
 
 # Makes the code file
 def ProblemCode():
+	global URL
 	p_Lang = {"C++":"cpp", "Python":"py", "C":"c"}		#TODO: Add other langs
+	p_Lang_Comment = {"C++":"//", "Python":"#", "C":"//"}
+
 	pathList = driver.find_elements_by_class_name('breadcrumb-item-text')
 	p_Name = ''.join(ch for ch in pathList[-1].text if ch.isalnum())
 	p_default = driver.find_element_by_xpath("//div[@class='view-lines']").text		#TODO: prettify p_default
 	
 	pMain = open("{0}{1}.{2}".format(P_PATH, p_Name, p_Lang[pathList[1].text]), 'w')
+	
+	initComment = "{0} URL - {1}\n\n".format(p_Lang_Comment[pathList[1].text], URL)
+	pMain.write(initComment)
 	pMain.write(p_default)
 	pMain.close()
 
@@ -69,8 +76,9 @@ def InputOutput():
 	
 
 def main():
-	url = sys.argv[1]
-	driver.get(url)
+	global URL 
+	URL = sys.argv[1]
+	driver.get(URL)
 	# Close the signup popup 
 	try:
 		close_btn = driver.find_element_by_class_name('close-icon')
