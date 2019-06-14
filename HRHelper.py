@@ -6,27 +6,24 @@ import os
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
-# from PIL import Image
-
-# Check
-if (len(sys.argv) < 2):
-	print('Usage: <<>>.py [url] \nSample url: https://www.hackerrank.com/challenges/attribute-parser/problem')
-	exit()
+from selenium.common.exceptions import WebDriverException
 
 # Run Firefox
 firefoxOption = Options()
 firefoxOption.add_argument('-headless');
 firefoxOption.add_argument('--window-size=1920,1080')
 driver = webdriver.Firefox(firefox_options=firefoxOption)
-P_PATH = './'
+P_PATH = '.\\'
 URL = ''
 
+# # # [FOLDER MAKING FACTORY] # # #
 # create nested folders
 def createFolders():
 	global P_PATH
+	P_PATH = '.\\'
 	pathList = driver.find_elements_by_class_name('breadcrumb-item-text')
 	for p in pathList:
-		P_PATH += p.text + '/'
+		P_PATH += p.text + "\\"
 	os.makedirs(P_PATH, exist_ok=True)
 	populateFolder()
 
@@ -35,9 +32,7 @@ def populateFolder():
 	ProblemStatement()
 	ProblemCode()
 	InputOutput()
-	#Runner()
 
-# [populateFolder]
 # Creates an Image of the problem statement
 # TODO: Add options whether to use text or image
 def ProblemStatement():
@@ -63,6 +58,7 @@ def ProblemCode():
 	pMain.write(p_default)
 	pMain.close()
 
+#Creates Input and Output files
 def InputOutput():
 	p_Input = driver.find_element_by_class_name('challenge_sample_input_body').text
 	inp = open('{0}/inp.txt'.format(P_PATH), 'w')
@@ -73,21 +69,71 @@ def InputOutput():
 	out = open('{0}/out.txt'.format(P_PATH), 'w')
 	out.write(p_Output)
 	out.close()
-	
 
-def main():
-	global URL 
-	URL = sys.argv[1]
-	driver.get(URL)
-	# Close the signup popup 
+# # # [HELPER INTERFACE] # # #
+def HelperInterface():
+	global P_PATH
+	print("'get <url>' => Creates folder for the problem")
+	print("'run' => Run the program and check output")
+	print("'reset' => Defaults all the file")
+	print("'quit' or 'exit' => Exit the program")
+
+	usr_Cmd = ""
+	while(usr_Cmd != 'quit' or usr_Cmd != 'exit'):
+		usr_Cmd = input(">> ")
+		usr_Cmd = usr_Cmd.lower()
+		if(usr_Cmd[:3]=="get"):
+			if len(usr_Cmd)<=4:
+				print("Usage: 'get <url>'")
+			else:
+				global URL
+				URL = usr_Cmd[4:]
+				try:
+					driver.get(URL)
+					try:
+						close_btn = driver.find_element_by_class_name('close-icon')
+						close_btn.click()
+					except:
+						pass
+					createFolders()
+				except WebDriverException:
+					print("Wrong Url.")
+					
+		elif(usr_Cmd == "run" or usr_Cmd== "r"):
+			HelperRun()
+		elif(usr_Cmd == "reset" or usr_Cmd == "rs" ):
+			createFolders()
+		elif(usr_Cmd == "quit" or usr_Cmd == "exit" or usr_Cmd == "q"):
+			return
+		elif(usr_Cmd == "cls"):
+			os.system("cls")
+		else:
+			print("Invalid Command.")
+
+def HelperRun():
+	global P_PATH
+	lang = P_PATH.split('\\')[2]
+	programName = ''.join(ch for ch in P_PATH.split('\\')[-2] if ch.isalnum())
 	try:
-		close_btn = driver.find_element_by_class_name('close-icon')
-		close_btn.click()
+		r = os.system("Helper.bat {0} {1} \"{2}\"".format(lang, programName, P_PATH))
 	except:
 		pass
 
-	createFolders()
+# # # [MAIN] # # #
+def main():
+	global URL 
+	# Check if URL is provided
+	if (len(sys.argv) >= 2):
+		URL = sys.argv[1]
+		driver.get(URL)
+		try:
+			close_btn = driver.find_element_by_class_name('close-icon')
+			close_btn.click()
+		except:
+			pass
+		createFolders()
 
+	HelperInterface()
 	driver.close()
 
 if __name__ == "__main__":
